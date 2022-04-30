@@ -1,0 +1,2 @@
+Error archivo a encriptar no se ha podido abrir
+: No such file or directory
