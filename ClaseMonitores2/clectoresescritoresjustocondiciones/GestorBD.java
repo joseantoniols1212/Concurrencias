@@ -12,7 +12,7 @@ public class GestorBD {
 	public synchronized void entraLector(int id) throws InterruptedException {
 
 		while (hayEscritor || nEscritores > 0)
-			wait();
+			okLeer.cwait();
 
 		nLectores++;
 		System.out.println("Entra lector " + id + ", hay " + nLectores + " lectores");
@@ -26,7 +26,7 @@ public class GestorBD {
 		System.out.println("Sale lector " + id + ", hay " + nLectores + " lectores");
 
 		if (nLectores == 0)
-			notifyAll();
+			okEscribir.cnotify();
 
 	}
 
@@ -34,7 +34,7 @@ public class GestorBD {
 
 		nEscritores++;
 		while (nLectores > 0 || hayEscritor) {
-			wait();
+			okEscribir.cwait();
 		}
 
 		hayEscritor = true;
@@ -47,7 +47,12 @@ public class GestorBD {
 		hayEscritor = false;
 		System.out.println("                    Sale escritor " + id);
 		nEscritores--;
-		notifyAll();
+
+		if (nEscritores > 0) {
+			okEscribir.cnotify();
+		} else {
+			okLeer.cnotifyAll();
+		}
 
 	}
 

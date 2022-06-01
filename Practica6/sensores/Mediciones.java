@@ -4,6 +4,11 @@ import java.util.concurrent.Semaphore;
 
 public class Mediciones {
 
+    Semaphore esperoPorTrabajador = new Semaphore(0);
+    Semaphore exclusionNumMed = new Semaphore(1);
+    Semaphore esperoPorSensores = new Semaphore(0);
+    int numMed = 0;
+
     public Mediciones() {
 
     }
@@ -15,9 +20,25 @@ public class Mediciones {
      * @param id
      * @throws InterruptedException
      */
-    public void nuevaMedicion(int id) {
+    public void nuevaMedicion(int id) throws InterruptedException {
 
+        exclusionNumMed.acquire();
+
+        numMed++;
         System.out.println("Sensor " + id + " deja sus mediciones.");
+        if (numMed == 3) {
+            esperoPorSensores.release();
+        }
+        exclusionNumMed.release();
+
+        esperoPorTrabajador.acquire();
+
+        exclusionNumMed.acquire();
+        numMed--;
+        if (numMed != 0) {
+            esperoPorTrabajador.release();
+        }
+        exclusionNumMed.release();
 
     }
 
@@ -26,7 +47,9 @@ public class Mediciones {
      * 
      * @throws InterruptedException
      */
-    public void leerMediciones() {
+    public void leerMediciones() throws InterruptedException {
+
+        esperoPorSensores.acquire();
 
         System.out.println("El trabajador tiene sus mediciones...y empieza sus tareas");
 
@@ -37,6 +60,7 @@ public class Mediciones {
      */
     public void finTareas() {
         System.out.println("El trabajador ha terminado sus tareas");
+        esperoPorTrabajador.release();
 
     }
 
